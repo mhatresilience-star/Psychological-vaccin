@@ -2,7 +2,8 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#b5195a">
 <title>心疫苗｜心理韌性 × 生活挑戰</title>
 <style>
 :root{--pink:#b5195a;--pink2:#d2306f;--cream:#fff5e6;--yellow:#fbbf24;--blue:#4fb3d9;--green:#5fa84d;--coral:#ee6c5f;--ink:#4a3b35}
@@ -73,14 +74,28 @@ header p{margin:2px 0 0;font-weight:700;color:var(--cream)}
 .in2{width:100%;padding:12px;border-radius:14px;border:3px solid #f3c6d6;font:inherit;font-size:16px;margin:4px 0;color:var(--ink);background:#fff}
 .note-wall{display:grid;gap:10px;grid-template-columns:repeat(auto-fill,minmax(170px,1fr))}.sticky{background:#fff7c2;border-radius:14px;padding:10px;box-shadow:0 3px 0 rgba(0,0,0,.12);font-size:14px;line-height:1.6}.sticky img{width:44px;height:44px;float:right;object-fit:contain}.sticky small{opacity:.6;display:block}
 h3.sec{color:#fff;margin:16px 4px 8px;font-size:18px;text-shadow:1px 1px 0 rgba(0,0,0,.25)}.big-n{font-size:64px;font-weight:900;color:var(--pink);line-height:1.1}
+html{background:#b5195a}
+header{display:grid;grid-template-columns:92px 1fr 92px;align-items:center;gap:4px;position:sticky;top:0;z-index:20;padding:calc(6px + env(safe-area-inset-top,0px)) 8px 6px;background:#b5195a;box-shadow:0 3px 0 rgba(0,0,0,.15)}
+.ht{cursor:pointer;text-align:center}.ht h1{margin:0;font-size:clamp(24px,5vw,38px);letter-spacing:5px;color:#fff;text-shadow:2px 2px 0 rgba(0,0,0,.2)}.ht p{margin:0;font-size:clamp(11px,2.8vw,14px);font-weight:700;color:var(--cream)}
+.hb{border:0;background:var(--cream);color:var(--pink);font:inherit;font-weight:800;border-radius:999px;padding:9px 12px;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.2);justify-self:start}
+header .tools{position:static;justify-self:end}header .tools button{width:38px;height:38px;font-size:18px}
+.menu{display:flex;flex-wrap:wrap;justify-content:center;gap:12px}.mcard{flex:0 1 calc(50% - 6px)}
+@media(min-width:760px){.mcard{flex-basis:calc(25% - 9px)}}
+.strip{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;background:var(--cream);border-radius:20px;padding:8px 14px;font-weight:700;margin-bottom:6px}.strip .sharebar{margin:0}
+.sharebar{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;margin:8px 0}.sharebar .btn{font-size:14px;padding:9px 14px}
+.btn.line{background:#06C755;box-shadow:0 4px 0 #04943f}
+.stnav{position:sticky;bottom:0;background:var(--cream);padding:6px 0;margin-top:6px}
+@media(max-width:600px){.scene{min-height:170px}.scene img{max-height:150px}.big{max-height:150px;width:auto;max-width:60%}}
+:focus-visible{outline:4px solid var(--yellow);outline-offset:2px}
+@media(prefers-reduced-motion:reduce){.scene img,.mcard{animation:none!important}}
 footer{text-align:center;color:var(--cream);font-size:12px;padding:0 14px 24px;line-height:1.8}
 </style>
 </head>
 <body>
 <header>
-  <div class="tools"><button id="snd" title="音效">🔊</button><button id="bgm" title="背景音樂">🎵</button></div>
-  <h1 onclick="home()">心疫苗</h1>
-  <p>心理韌性 × 生活挑戰 ｜ 暖心小遊戲</p>
+  <button id="bk" class="hb" onclick="goBack()" style="visibility:hidden" aria-label="返回上一頁">← 返回</button>
+  <div class="ht" onclick="home()" role="button" aria-label="回到首頁"><h1>心疫苗</h1><p>心理韌性 × 生活挑戰 ｜ 暖心小遊戲</p></div>
+  <div class="tools"><button id="snd" aria-label="音效開關" title="音效">🔊</button><button id="bgm" aria-label="背景音樂開關" title="背景音樂">🎵</button></div>
 </header>
 <div class="wrap" id="app"></div>
 <div class="pop" id="pop"></div>
@@ -104,7 +119,7 @@ let timer=null, breathT=null;
 const stopAll = () => { clearInterval(timer); clearTimeout(breathT); timer=null; };
 
 /* ============ 音效（Web Audio 合成，不需外部檔案） ============ */
-let AC=null, soundOn=true, bgmOn=false, bgmTimer=null;
+let AC=null, soundOn=(()=>{try{return localStorage.getItem('xyy_snd')!=='0'}catch(e){return true}})(), bgmOn=false, bgmTimer=null;
 const ac = () => AC || (AC = new (window.AudioContext||window.webkitAudioContext)());
 function tone(f,d=.15,type='sine',v=.12,delay=0){
   if(!soundOn&&type!=='bgm')return; try{const c=ac(),o=c.createOscillator(),g=c.createGain(),t=c.currentTime+delay;
@@ -123,10 +138,12 @@ const SFX = {
 const sfx = n => SFX[n]&&SFX[n]();
 function bgmLoop(){ const sc=[523,587,659,784,880,784,659,587]; let i=0;
   bgmTimer=setInterval(()=>{ if(!bgmOn)return; tone(sc[i%8]/2,1.2,'bgm',.04); if(i%4===0)tone(sc[(i+2)%8],.8,'bgm',.025); i++; },900); }
-document.getElementById('snd').onclick=e=>{soundOn=!soundOn;e.target.textContent=soundOn?'🔊':'🔇';sfx('click')};
+const sb=document.getElementById('snd'); sb.textContent=soundOn?'🔊':'🔇';
+sb.onclick=e=>{soundOn=!soundOn;e.target.textContent=soundOn?'🔊':'🔇';try{localStorage.setItem('xyy_snd',soundOn?'1':'0')}catch(x){}sfx('click')};
 document.getElementById('bgm').onclick=e=>{bgmOn=!bgmOn;e.target.style.opacity=bgmOn?1:.5;if(bgmOn&&!bgmTimer){ac();bgmLoop();}};
 document.getElementById('bgm').style.opacity=.5;
-document.addEventListener('click',e=>{ if(e.target.closest('.btn,.mcard,.opt,.mood button'))sfx('click'); },true);
+document.addEventListener('click',e=>{ const c=e.target.closest&&e.target.closest('.btn,.mcard,.opt,.mood button,.chip'); if(c)sfx('click');
+  if(e.target.closest&&e.target.closest('.opt,#rd'))setTimeout(()=>{const x=document.getElementById('ts');if(x&&!x.classList.contains('hide'))x.scrollIntoView({behavior:'smooth',block:'nearest'})},150); },true);
 
 /* ============ 徽章 ============ */
 const BADGES = {
@@ -163,7 +180,7 @@ function badges(){
   stopAll(); const n=Object.keys(got).length;
   $app.innerHTML=`<div class="panel"><div class="top"><h2>🏅 我的徽章（${n}/${Object.keys(BADGES).length}）</h2></div>
    <div class="bgrid">${Object.entries(BADGES).map(([k,b])=>`<div class="badge ${got[k]?'':'lock'}">${S(b[0])}<b>${b[1]}</b>${b[2]}</div>`).join('')}</div>
-   <div class="center"><button class="btn ghost" onclick="home()">回首頁</button></div></div>`;
+   <div class="center">${shareBar('我在「心疫苗」已收集 '+n+'/'+Object.keys(BADGES).length+' 枚徽章 🏅 一起來挑戰！')}<button class="btn ghost" onclick="home()">回首頁</button></div></div>`;
 }
 
 /* ============ 首頁 ============ */
@@ -173,7 +190,7 @@ function home(){
    ['🌿 練一練',[['breath()','c35','呼吸練習','三階段放鬆呼吸'],['ground()','q37','五感著陸','5-4-3-2-1 回到當下'],['stretch()','c39','伸展小體操','動一動放鬆身體'],['mood()','q26','心情氣象站','說說今天的心情']]],
    ['📝 記一記',[['kit()','c33','情緒急救包','我的專屬舒緩清單'],['grat()','c28','感恩小確幸','寫下今天的好事'],['strength()','q17','優點大聲讚','發現自己的優點'],['draw()','c10','今日暖心籤','抽一張小確幸']]],
    ['🤝 看一看・聊一聊',[['stories()','q09','心理繪本','4 個主題故事'],['duo()','q25','雙人交流卡','和家人朋友聊聊'],['help()','q02','求助地圖','需要時可以找誰'],['badges()','q35','我的徽章','看看收集進度']]]];
-  $app.innerHTML=G.map(g=>`<h3 class="sec">${g[0]}</h3><div class="menu">${g[1].map(m=>`<button class="mcard" onclick="${m[0]}">${S(m[1])}<h2>${m[2]}</h2><p>${m[3]}</p></button>`).join('')}</div>`).join('');
+  $app.innerHTML=`<div class="strip"><span>🏅 已收集 <b>${Object.keys(got).length}</b>/${Object.keys(BADGES).length} 枚徽章</span>${shareBar('我在玩「心疫苗」心理韌性小遊戲：翻翻看、呼吸練習、心理繪本……推薦給你 💗')}</div>`+G.map(g=>`<h3 class="sec">${g[0]}</h3><div class="menu">${g[1].map(m=>`<button class="mcard" onclick="${m[0]}">${S(m[1])}<h2>${m[2]}</h2><p>${m[3]}</p></button>`).join('')}</div>`).join('');
 }
 
 /* ============ 1. 翻翻看 ============ */
@@ -208,7 +225,7 @@ function memory(theme,level){
 function memWin(theme,level,moves,sec){
   sfx('win'); award('mem'); if(level===8)award('memhard'); if(level===4&&moves<=8)award('memperf');
   $app.innerHTML=`<div class="panel center result">${S(pick(ALL),'big')}<h3>🎉 全部配對成功！</h3><p>共 ${moves} 步，用時 ${sec} 秒</p>
-   <p class="q">每一次專注嘗試，都讓你更有彈性 🌈</p>
+   <p class="q">每一次專注嘗試，都讓你更有彈性 🌈</p>${shareBar(`我用 ${moves} 步、${sec} 秒完成了「心疫苗」翻翻看！一起來玩 🌈`)}
    <button class="btn" onclick="memory('${theme}',${level})">再玩一次</button><button class="btn alt" onclick="memory('${theme}')">換難度</button><button class="btn ghost" onclick="home()">回首頁</button></div>`;
 }
 
@@ -230,17 +247,18 @@ const RES=[
  {min:12,max:16,i:'q06',t:'🌈 彈性十足的你',d:'你擅長面對挑戰、尋找資源，也懂得照顧自己。也可以成為別人的支持力量！',tips:['持續留意自己的壓力訊號','主動關心身邊需要支持的人','安排適度休息，避免過度努力','慶祝每一次進步']}
 ];
 function quiz(){
-  stopAll(); let n=0,score=0;
-  const draw=()=>{
+  stopAll(); let n=0,sc=[];
+  const draw=()=>{ const score=sc.reduce((a,b)=>a+b,0); stepBack=()=>{ if(n>0){n--;draw();return true} };
     if(n>=QS.length){ const r=RES.find(x=>score>=x.min&&score<=x.max); sfx('win'); award('quiz');
-      $app.innerHTML=`<div class="panel center result">${S(r.i,'big')}<h3>${r.t}</h3><p class="q">${r.d}</p><ul class="tips">${r.tips.map(t=>`<li>${t}</li>`).join('')}</ul>
+      $app.innerHTML=`<div class="panel center result">${S(r.i,'big')}<h3>${r.t}</h3><p class="q">${r.d}</p><ul class="tips">${r.tips.map(t=>`<li>${t}</li>`).join('')}</ul>${shareBar('我在「心疫苗」完成了心理韌性小檢視：'+r.t+' 🌈 你也來玩玩看！')}
       <p class="note">※ 本測驗僅供自我覺察與教育用途，不是診斷工具。若持續感到困擾，請洽專業心理師或精神科醫師；急需協助可撥 1925 安心專線。</p>
       <button class="btn" onclick="quiz()">再測一次</button><button class="btn ghost" onclick="home()">回首頁</button></div>`; return; }
     const [q,o]=QS[n];
     $app.innerHTML=`<div class="panel"><div class="top"><h2>心理韌性小測驗</h2><div class="stats"><span>${n+1} / ${QS.length}</span></div></div>
      <div class="bar"><i style="width:${n/QS.length*100}%"></i></div><div class="center">${S(QIMG[n],'big')}</div>
-     <p class="q">${q}</p><div class="opts">${o.map((t,k)=>`<button class="opt" data-k="${k}">${t}</button>`).join('')}</div><p class="note center">沒有對錯，選最接近你真實想法的就好。</p></div>`;
-    $app.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{score+=+b.dataset.k;n++;draw()});
+     <p class="q">${q}</p><div class="opts">${o.map((t,k)=>`<button class="opt" data-k="${k}">${t}</button>`).join('')}</div><p class="note center">沒有對錯，選最接近你真實想法的就好。</p>${n?'<div class="center"><button class="btn ghost" id="pv">◀ 上一題</button></div>':''}</div>`;
+    $app.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{sc[n]=+b.dataset.k;n++;draw()});
+    const pv=document.getElementById('pv'); if(pv)pv.onclick=()=>{n--;draw()};
   }; draw();
 }
 
@@ -294,7 +312,7 @@ function story(b,p){
    <div class="stxt" id="tx">${pg.t}</div>
    ${pg.opts?`<div class="opts">${pg.opts.map((o,k)=>`<button class="opt" data-k="${k}">${o[0]}</button>`).join('')}</div>`:''}
    <div class="dots" style="margin-top:10px">${bk.pages.map((_,k)=>`<i class="${k===p?'on':''}"></i>`).join('')}</div>
-   <div class="center"><button class="btn ghost ${p===0?'hide':''}" onclick="story(${b},${p-1})">◀ 上一頁</button>
+   <div class="center stnav"><button class="btn ghost ${p===0?'hide':''}" onclick="story(${b},${p-1})">◀ 上一頁</button>
    ${last?`<button class="btn alt" onclick="stories()">選其他繪本</button>`:`<button class="btn" onclick="story(${b},${p+1})">下一頁 ▶</button>`}
    <button class="btn ghost" onclick="home()">回首頁</button></div></div>`;
   if(pg.opts)$app.querySelectorAll('.opt').forEach(o=>o.onclick=()=>{document.getElementById('tx').innerHTML=pg.opts[+o.dataset.k][1];sfx('ok')});
@@ -314,7 +332,7 @@ const MOODS=[
 function mood(){
   stopAll(); $app.innerHTML=`<div class="panel center"><h2 style="color:var(--pink)">🌤️ 心情氣象站</h2><p class="q">此刻的你，心情像哪種天氣？</p>
    <div class="mood">${MOODS.map((m,k)=>`<button data-k="${k}">${S(m[1])}${m[0]}</button>`).join('')}</div><button class="btn ghost" onclick="home()">回首頁</button></div>`;
-  $app.querySelectorAll('.mood button').forEach(b=>b.onclick=()=>{ const m=MOODS[+b.dataset.k]; sfx('ok'); award('mood');
+  $app.querySelectorAll('.mood button').forEach(b=>b.onclick=()=>{ const m=MOODS[+b.dataset.k]; sfx('ok'); award('mood'); stepBack=()=>{mood();return true};
    $app.innerHTML=`<div class="panel center result">${S(m[1],'big')}<h3>${m[0]}</h3><p class="q">${m[2]}</p><div class="tips" style="list-style:none;padding-left:18px">💡 小提醒：${m[3]}</div>
    <p class="note">所有心情都是正常的。若不舒服的感受持續很久，別忘了向身邊的人或專業人員求助。</p>
    <button class="btn" onclick="mood()">再選一次</button><button class="btn alt" onclick="breath()">做呼吸練習</button><button class="btn ghost" onclick="home()">回首頁</button></div>`; });
@@ -394,9 +412,9 @@ function reframe(){
 const MISSIONS=['對鏡子裡的自己微笑 10 秒','傳一句感謝給一位朋友或家人','喝一大杯水，伸展一下身體','寫下今天 3 件小確幸','出門走走 10 分鐘，看看天空','說一句「我已經很努力了」','整理桌面一小塊區域','聽一首讓你放鬆的歌','跟一位久未聯絡的人問聲好','早一點上床，給自己好眠'];
 function draw(){
   stopAll(); $app.innerHTML=`<div class="panel center"><h2 style="color:var(--pink)">🎴 今日暖心籤</h2><p class="q">閉上眼睛，深呼吸，輕輕按下抽籤！</p>${S('c10','big')}<br><button class="btn" id="dr">抽一張</button><button class="btn ghost" onclick="home()">回首頁</button></div>`;
-  document.getElementById('dr').onclick=()=>{ const id=pick(ALL), t=pick(TIPS), m=pick(MISSIONS); sfx('badge'); award('draw');
+  document.getElementById('dr').onclick=()=>{ const id=pick(ALL), t=pick(TIPS), m=pick(MISSIONS); sfx('badge'); award('draw'); stepBack=()=>{draw();return true};
    $app.innerHTML=`<div class="panel center"><div class="draw">${S(id,'big')}</div><p class="q">💬 ${t}</p><div class="tips" style="list-style:none;padding-left:18px">🎯 今日小任務：${m}</div>
-   <button class="btn" onclick="draw()">再抽一張</button><button class="btn ghost" onclick="home()">回首頁</button></div>`; };
+   ${shareBar('今日暖心籤 🎴\n💬 '+t+'\n🎯 今日小任務：'+m+'\n（來自「心疫苗」）')}<button class="btn" onclick="draw()">再抽一張</button><button class="btn ghost" onclick="home()">回首頁</button></div>`; };
 }
 /* ============ 擴充活動 ============ */
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -447,7 +465,7 @@ function grat(){
   stopAll(); const list=LS.g('xyy_gr',[]);
   $app.innerHTML=`<div class="panel"><div class="top"><h2>🌼 感恩小確幸日記</h2></div><p class="q">今天有哪些小小的好事？（寫 1～3 件）</p>
    ${[1,2,3].map(i=>`<input class="in2" maxlength="40" id="g${i}" placeholder="第 ${i} 件小確幸…">`).join('')}
-   <div class="center"><button class="btn" id="gs">貼到小確幸牆</button>${back}</div>
+   <div class="center"><button class="btn" id="gs">貼到小確幸牆</button>${back}${list.length?shareBar('我最近的小確幸 🌼\n'+list.slice(-3).map(e=>'・'+e.t).join('\n')+'\n（來自「心疫苗」）'):''}</div>
    <h3 style="color:var(--pink)">🧱 小確幸牆（${list.length}）</h3>
    <div class="note-wall">${list.slice().reverse().slice(0,24).map(e=>`<div class="sticky">${S(e.i)}${esc(e.t)}<small>${esc(e.d)}</small></div>`).join('')||'<p>還沒有紀錄，從今天開始吧！</p>'}</div>
    <p class="note">內容只會存在這台裝置的瀏覽器裡。</p></div>`;
@@ -495,8 +513,8 @@ function stretch(){
 const STR=['善良','有耐心','勇敢','幽默','認真','負責','好奇','愛學習','會傾聽','樂觀','細心','有創意','堅持','願意求助','懂得感謝','溫柔'];
 function strength(){
   stopAll(); picker({title:'🌟 優點大聲讚',sub:'挑出 3 個你（或別人眼中的你）的優點。',items:STR,min:3,max:3,btn:'產生我的優點卡',
-   done:s=>{ sfx('badge'); award('strength'); const m=['你值得被看見，也值得被稱讚 ✨','這些都是你一路走來累積的力量 💪','記得，在難過的時候也要想起這些優點 💗'];
-    $app.innerHTML=`<div class="panel center"><div class="draw">${S(pick(ALL),'big')}<h3 style="color:var(--pink);margin:6px 0">我的 3 個優點</h3><p class="q">${s.map(esc).join('、')}</p></div><p class="q">${pick(m)}</p><p class="note">可以截圖，分享給朋友或家人。</p><button class="btn" onclick="strength()">再做一張</button>${back}</div>`; }});
+   done:s=>{ sfx('badge'); award('strength'); stepBack=()=>{strength();return true}; const m=['你值得被看見，也值得被稱讚 ✨','這些都是你一路走來累積的力量 💪','記得，在難過的時候也要想起這些優點 💗'];
+    $app.innerHTML=`<div class="panel center"><div class="draw">${S(pick(ALL),'big')}<h3 style="color:var(--pink);margin:6px 0">我的 3 個優點</h3><p class="q">${s.map(esc).join('、')}</p></div><p class="q">${pick(m)}</p>${shareBar('我的 3 個優點：'+s.join('、')+' ✨ 你也來「心疫苗」發現自己的優點！')}<p class="note">也可以截圖分享。</p><button class="btn" onclick="strength()">再做一張</button>${back}</div>`; }});
 }
 
 /* ---- 求助地圖 ---- */
@@ -519,7 +537,32 @@ function duo(lv){
     <button class="btn" onclick="duo('輕鬆')">😊 輕鬆</button><button class="btn alt" onclick="duo('暖心')">💗 暖心</button><button class="btn" onclick="duo('深入')">🌙 深入</button><br>${back}</div>`; return; }
   const deck=shuf(DQ[lv]); let k=0;
   $app.innerHTML=`<div class="panel center"><h2 style="color:var(--pink)">🤝 ${lv}卡</h2><div class="draw" id="dc"><p class="q">按「抽卡」開始</p></div><button class="btn" id="dd">🎴 抽卡</button><button class="btn alt" onclick="duo()">換難度</button>${back}</div>`;
-  document.getElementById('dd').onclick=()=>{ sfx('flip'); const q=deck[k%deck.length]; document.getElementById('dc').innerHTML=`${S(pick(ALL),'big')}<p class="note">輪到 <b>${k%2?'B':'A'}</b> 回答</p><p class="q">${q}</p>`; k++; if(k===5)award('duo'); };
+  document.getElementById('dd').onclick=()=>{ sfx('flip'); const q=deck[k%deck.length]; document.getElementById('dc').innerHTML=`${S(pick(ALL),'big')}<p class="note">輪到 <b>${k%2?'B':'A'}</b> 回答</p><p class="q">${q}</p>${shareBar('來聊聊吧 💬 '+q+'（來自「心疫苗」雙人交流卡）')}`; k++; if(k===5)award('duo'); };
+}
+/* ============ 返回 / 導覽 ============ */
+let stepBack=null; const NAV=[];
+['home','memory','quiz','stories','story','mood','breath','reply','reframe','draw','kit','grat','ground','worry','emo','stretch','strength','help','duo','badges'].forEach(n=>{
+  const f=window[n];
+  window[n]=function(...a){ const key=n+JSON.stringify(a);
+    if(n==='home')NAV.length=0;
+    if(!NAV.length||NAV[NAV.length-1][2]!==key)NAV.push([n,a,key]);
+    stepBack=null; document.getElementById('bk').style.visibility=NAV.length>1?'visible':'hidden';
+    window.scrollTo(0,0); return f.apply(this,a); };
+});
+function goBack(){ if(stepBack&&stepBack()===true)return; if(NAV.length<2)return; NAV.pop(); const [n,a]=NAV.pop(); window[n](...a); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape')goBack(); });
+
+/* ============ LINE 分享（網頁只能分享文字與連結；圖片請用截圖） ============ */
+const SHARE_URL=''; /* 部署後可填入你的網址；留空則使用目前網頁網址 */
+let SH='';
+const curUrl=()=>{ if(SHARE_URL)return SHARE_URL; try{ if(/^https?:/.test(location.href))return location.href.split('#')[0]; }catch(e){} return ''; };
+const shareMsg=()=>SH+(curUrl()?'\n'+curUrl():'');
+function shareBar(t){ SH=t; return '<div class="sharebar"><button class="btn line" onclick="shareLine()">💬 用 LINE 分享</button><button class="btn ghost" onclick="copyShare(this)">📋 複製文字</button></div>'; }
+function shareLine(){ const link='https://line.me/R/msg/text/?'+encodeURIComponent(shareMsg()); let w=null; try{w=window.open(link,'_blank')}catch(e){} if(w){try{w.opener=null}catch(e){}} else copyShare(); }
+function copyShare(btn){
+  const m=shareMsg(), ok=()=>{ if(btn&&btn.tagName){const o=btn.textContent;btn.textContent='✅ 已複製，可貼到 LINE';setTimeout(()=>btn.textContent=o,2200)} };
+  const fb=()=>{ try{const x=document.createElement('textarea');x.value=m;document.body.appendChild(x);x.select();document.execCommand('copy');x.remove();ok()}catch(e){} };
+  try{ navigator.clipboard.writeText(m).then(ok,fb) }catch(e){ fb() }
 }
 home();
 </script>
