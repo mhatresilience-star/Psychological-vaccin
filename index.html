@@ -88,6 +88,8 @@ header .tools{position:static;justify-self:end}header .tools button{width:38px;h
 @media(max-width:600px){.scene{min-height:170px}.scene img{max-height:150px}.big{max-height:150px;width:auto;max-width:60%}}
 :focus-visible{outline:4px solid var(--yellow);outline-offset:2px}
 @media(prefers-reduced-motion:reduce){.scene img,.mcard{animation:none!important}}
+.cn{display:inline-block;min-width:34px;margin:3px;padding:2px 6px;border-radius:10px;background:#fff;border:2px solid #f3c6d6;font-weight:900;transition:.15s}.cn.on{background:var(--pink);color:#fff;border-color:var(--pink)}
+.ov{position:fixed;inset:0;background:rgba(60,0,30,.65);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px}.ov .panel{max-width:460px;width:100%;max-height:92vh;overflow:auto}
 footer{text-align:center;color:var(--cream);font-size:12px;padding:0 14px 24px;line-height:1.8}
 </style>
 </head>
@@ -99,6 +101,7 @@ footer{text-align:center;color:var(--cream);font-size:12px;padding:0 14px 24px;l
 </header>
 <div class="wrap" id="app"></div>
 <div class="pop" id="pop"></div>
+<div class="ov hide" id="intro" role="dialog" aria-modal="true"></div>
 <footer>
   貼圖素材：「喵葫蘆暖心日常」、「微笑袋鼠 (Quokka)暖心陪伴」（© Mental Health Association in Taiwan）。<br>
   本網頁為心理衛生教育小遊戲，不能取代專業評估或治療。<br>
@@ -190,7 +193,7 @@ function home(){
    ['🌿 練一練',[['breath()','c35','呼吸練習','三階段放鬆呼吸'],['ground()','q37','五感著陸','5-4-3-2-1 回到當下'],['stretch()','c39','伸展小體操','動一動放鬆身體'],['mood()','q26','心情氣象站','說說今天的心情']]],
    ['📝 記一記',[['kit()','c33','情緒急救包','我的專屬舒緩清單'],['grat()','c28','感恩小確幸','寫下今天的好事'],['strength()','q17','優點大聲讚','發現自己的優點'],['draw()','c10','今日暖心籤','抽一張小確幸']]],
    ['🤝 看一看・聊一聊',[['stories()','q09','心理繪本','4 個主題故事'],['duo()','q25','雙人交流卡','和家人朋友聊聊'],['help()','q02','求助地圖','需要時可以找誰'],['badges()','q35','我的徽章','看看收集進度']]]];
-  $app.innerHTML=`<div class="strip"><span>🏅 已收集 <b>${Object.keys(got).length}</b>/${Object.keys(BADGES).length} 枚徽章</span>${shareBar('我在玩「心疫苗」心理韌性小遊戲：翻翻看、呼吸練習、心理繪本……推薦給你 💗')}</div>`+G.map(g=>`<h3 class="sec">${g[0]}</h3><div class="menu">${g[1].map(m=>`<button class="mcard" onclick="${m[0]}">${S(m[1])}<h2>${m[2]}</h2><p>${m[3]}</p></button>`).join('')}</div>`).join('');
+  $app.innerHTML=`<div class="strip"><span>🏅 已收集 <b>${Object.keys(got).length}</b>/${Object.keys(BADGES).length} 枚徽章</span><button class="btn ghost" style="font-size:14px;padding:8px 14px" onclick="intro(0)">❓ 使用說明</button>${shareBar('我在玩「心疫苗」心理韌性小遊戲：翻翻看、呼吸練習、心理繪本……推薦給你 💗')}</div>`+G.map(g=>`<h3 class="sec">${g[0]}</h3><div class="menu">${g[1].map(m=>`<button class="mcard" onclick="${m[0]}">${S(m[1])}<h2>${m[2]}</h2><p>${m[3]}</p></button>`).join('')}</div>`).join('');
 }
 
 /* ============ 1. 翻翻看 ============ */
@@ -339,25 +342,30 @@ function mood(){
 }
 
 /* ============ 5. 呼吸練習 ============ */
-const BLV={1:['初階','吸 4 － 呼 6',[['吸氣',4],['吐氣',6]]],2:['中階','吸 4 － 閉 2 － 呼 6',[['吸氣',4],['閉氣',2],['吐氣',6]]],3:['進階','吸 4 － 閉 4 － 呼 6',[['吸氣',4],['閉氣',4],['吐氣',6]]]};
-let bdone={}; try{bdone=JSON.parse(localStorage.getItem('xyy_bl')||'{}')}catch(e){}
+const BLV={1:['初階','吸 1-4 → 呼 1-6',[['吸氣',4],['吐氣',6]]],2:['中階','吸 1-4 → 閉 1-2 → 呼 1-6',[['吸氣',4],['閉氣',2],['吐氣',6]]],3:['進階','吸 1-4 → 閉 1-4 → 呼 1-6',[['吸氣',4],['閉氣',4],['吐氣',6]]]};
+const BPACE={'慢':1300,'中':1000,'快':800};
+let bdone={}, bpace=1000; try{bdone=JSON.parse(localStorage.getItem('xyy_bl')||'{}'); bpace=+localStorage.getItem('xyy_bp')||1000}catch(e){}
 function breath(lv){
   stopAll();
-  if(!lv){ $app.innerHTML=`<div class="panel center"><h2 style="color:var(--pink)">🌬️ 呼吸練習：選擇階段</h2><p>從初階開始，慢慢熟悉後再挑戰下一階。不舒服時隨時回到平常呼吸就好，不要勉強。</p>
-    <div class="opts">${[1,2,3].map(k=>`<button class="opt" onclick="breath(${k})"><b>${bdone[k]?'✅ ':''}${BLV[k][0]}</b>　${BLV[k][1]}（秒）</button>`).join('')}</div>
-    <button class="btn ghost" onclick="home()">回首頁</button></div>`; return; }
+  if(!lv){ $app.innerHTML=`<div class="panel center"><h2 style="color:var(--pink)">🌬️ 呼吸練習：選擇階段</h2><p>不用盯著秒數，用自己覺得<b>舒服的節奏</b>，在心裡跟著默數。從初階開始，熟悉後再挑戰下一階；不舒服時，隨時回到平常的呼吸就好。</p>
+    <div class="opts">${[1,2,3].map(k=>`<button class="opt" onclick="breath(${k})"><b>${bdone[k]?'✅ ':''}${BLV[k][0]}</b>　${BLV[k][1]}</button>`).join('')}</div>
+    <p class="note">默數的速度：</p><div class="chips">${Object.entries(BPACE).map(([n,v])=>`<button class="chip${v===bpace?' on':''}" data-v="${v}">${n}</button>`).join('')}</div>
+    <button class="btn ghost" onclick="home()">回首頁</button></div>`;
+    $app.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{bpace=+c.dataset.v;try{localStorage.setItem('xyy_bp',bpace)}catch(e){}breath()}); return; }
   const [nm,desc,ph]=BLV[lv]; let round=0; const TOTAL=4;
-  $app.innerHTML=`<div class="panel center"><h2 style="color:var(--pink)">🌬️ ${nm}呼吸：${desc}</h2><p>舒服地坐好，跟著圓圈一起呼吸。</p>
-   <div class="breath" id="bc">${S('c35')}</div><p class="q" id="bt">按「開始」就可以囉</p><div class="stats" style="justify-content:center"><span>第 <b id="br">0</b> / ${TOTAL} 回合</span></div>
+  $app.innerHTML=`<div class="panel center"><h2 style="color:var(--pink)">🌬️ ${nm}呼吸</h2><p class="q">${desc}</p><p class="note">跟著圓圈，在心裡默數數字就好，不需要計較秒數。</p>
+   <div class="breath" id="bc">${S('c35')}</div><div class="q" id="bt">按「開始」就可以囉</div><div class="stats" style="justify-content:center"><span>第 <b id="br">0</b> / ${TOTAL} 回合</span></div>
    <button class="btn" id="bs">開始</button><button class="btn alt" onclick="breath()">換階段</button><button class="btn ghost" onclick="home()">回首頁</button></div>`;
   const bc=document.getElementById('bc'), bt=document.getElementById('bt');
+  const show=(name,cnt,k)=>{ bt.innerHTML=name+'<br>'+Array.from({length:cnt},(_,j)=>`<span class="cn${j<k?' on':''}">${j+1}</span>`).join(''); };
   const step=i=>{
     if(i===0&&round>=TOTAL){ bc.style.transform='scale(.8)'; bt.innerHTML='🎉 做得很好！感覺有輕鬆一點嗎？'; sfx('win'); award('breath'); if(lv===3)award('breathpro'); bdone[lv]=1; try{localStorage.setItem('xyy_bl',JSON.stringify(bdone))}catch(e){} return; }
     if(i===0){ round++; document.getElementById('br').textContent=round; }
-    const [name,sec]=ph[i]; bt.textContent=name+'… '+Array.from({length:sec},(_,k)=>k+1).join(' ');
-    if(name==='吸氣'){ bc.style.transition=`transform ${sec}s ease-in-out`; bc.style.transform='scale(1)'; sfx('inh'); }
-    else if(name==='吐氣'){ bc.style.transition=`transform ${sec}s ease-in-out`; bc.style.transform='scale(.55)'; sfx('exh'); }
-    breathT=setTimeout(()=>step((i+1)%ph.length),sec*1000);
+    const [name,cnt]=ph[i]; let k=0;
+    if(name==='吸氣'){ bc.style.transition=`transform ${cnt*bpace}ms ease-in-out`; bc.style.transform='scale(1)'; sfx('inh'); }
+    else if(name==='吐氣'){ bc.style.transition=`transform ${cnt*bpace}ms ease-in-out`; bc.style.transform='scale(.55)'; sfx('exh'); }
+    const tick=()=>{ k++; show(name,cnt,k); breathT=setTimeout(k<cnt?tick:()=>step((i+1)%ph.length),bpace); };
+    show(name,cnt,0); breathT=setTimeout(tick,0);
   };
   document.getElementById('bs').onclick=()=>{ clearTimeout(breathT); round=0; ac(); step(0); };
 }
@@ -564,7 +572,25 @@ function copyShare(btn){
   const fb=()=>{ try{const x=document.createElement('textarea');x.value=m;document.body.appendChild(x);x.select();document.execCommand('copy');x.remove();ok()}catch(e){} };
   try{ navigator.clipboard.writeText(m).then(ok,fb) }catch(e){ fb() }
 }
+/* ============ 首次使用說明 ============ */
+const INTRO=[['c01','歡迎來到「心疫苗」','這裡有小遊戲、放鬆練習、繪本和小工具，陪你練習面對生活的挑戰。<br>全年齡都能玩，慢慢來，沒有輸贏。'],
+ ['q18','怎麼玩？','首頁分成「玩一玩、練一練、記一記、看一看」四區，點任何一張卡片就能開始。<br>完成活動可以收集徽章 🏅'],
+ ['c30','好用的小功能','左上角「← 返回」可以回到上一頁；右上角可以開關音效與背景音樂；喜歡的內容可以用 LINE 分享給朋友。'],
+ ['q26','溫馨提醒','這裡是心理衛生教育小遊戲，不是診斷或治療。<br>感到撐不住時，請撥 <b>1925</b> 安心專線（24 小時），或找信任的人與專業人員聊聊。']];
+function intro(k=0){
+  const o=document.getElementById('intro'), p=INTRO[k], last=k===INTRO.length-1;
+  o.classList.remove('hide');
+  o.innerHTML=`<div class="panel center">${S(p[0],'big')}<h2 style="color:var(--pink);margin:6px 0">${p[1]}</h2><p class="q" style="font-size:18px">${p[2]}</p>
+   <div class="dots">${INTRO.map((_,i)=>`<i class="${i===k?'on':''}"></i>`).join('')}</div>
+   ${k?`<button class="btn ghost" id="ip">◀ 上一步</button>`:''}<button class="btn" id="in">${last?'開始玩 🎉':'下一步 ▶'}</button>${last?'':'<br><button class="btn ghost" id="isk" style="font-size:14px">略過說明</button>'}</div>`;
+  const close=()=>{o.classList.add('hide');LS.s('xyy_seen',1)};
+  document.getElementById('in').onclick=()=>last?close():intro(k+1);
+  const ip=document.getElementById('ip'); if(ip)ip.onclick=()=>intro(k-1);
+  const sk=document.getElementById('isk'); if(sk)sk.onclick=close;
+}
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){const o=document.getElementById('intro'); if(!o.classList.contains('hide')){o.classList.add('hide');LS.s('xyy_seen',1)}} });
 home();
+if(!LS.g('xyy_seen',0))intro(0);
 </script>
 </body>
 </html>
