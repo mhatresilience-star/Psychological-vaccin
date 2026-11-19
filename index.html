@@ -90,22 +90,32 @@ header .tools{position:static;justify-self:end}header .tools button{width:38px;h
 @media(prefers-reduced-motion:reduce){.scene img,.mcard{animation:none!important}}
 .cn{display:inline-block;min-width:34px;margin:3px;padding:2px 6px;border-radius:10px;background:#fff;border:2px solid #f3c6d6;font-weight:900;transition:.15s}.cn.on{background:var(--pink);color:#fff;border-color:var(--pink)}
 .ov{position:fixed;inset:0;background:rgba(60,0,30,.65);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px}.ov .panel{max-width:460px;width:100%;max-height:92vh;overflow:auto}
+header{grid-template-columns:104px 1fr 132px}header .tools button{font-size:15px;font-weight:800;color:var(--pink)}
+@media(max-width:480px){.ht p{display:none}}
+.mb{height:12px;background:#f3c6d6;border-radius:8px;overflow:hidden;margin:2px 0 6px}.mb i{display:block;height:100%;background:var(--pink)}
+h3.h3{color:var(--pink);margin:16px 0 4px;font-size:17px}
+.tts{position:fixed;right:10px;bottom:16px;width:50px;height:50px;border-radius:50%;border:0;background:var(--yellow);font-size:24px;z-index:15;box-shadow:0 4px 0 rgba(0,0,0,.25);cursor:pointer}
+.ln{border-bottom:2px solid #888;height:30px;margin:4px 0}
+@media print{header,footer,.tts,.noprint,.pop,.sharebar{display:none!important}html,body{background:#fff!important}.panel{box-shadow:none!important;background:#fff!important}.wrap{zoom:1!important}}
+.ribbon{position:absolute;top:10px;right:-8px;background:var(--coral);color:#fff;font-weight:800;padding:2px 12px;border-radius:6px;transform:rotate(6deg);box-shadow:0 2px 0 rgba(0,0,0,.2)}
 footer{text-align:center;color:var(--cream);font-size:12px;padding:0 14px 24px;line-height:1.8}
 </style>
 </head>
 <body>
 <header>
   <button id="bk" class="hb" onclick="goBack()" style="visibility:hidden" aria-label="返回上一頁">← 返回</button>
-  <div class="ht" onclick="home()" role="button" aria-label="回到首頁"><h1>心疫苗</h1><p>心理韌性 × 生活挑戰 ｜ 暖心小遊戲</p></div>
-  <div class="tools"><button id="snd" aria-label="音效開關" title="音效">🔊</button><button id="bgm" aria-label="背景音樂開關" title="背景音樂">🎵</button></div>
+  <div class="ht" onclick="home()" role="button" aria-label="回到首頁"><h1>心疫苗</h1><p>心理韌性 × 生活挑戰 ｜ 暖心遊戲</p></div>
+  <div class="tools"><button id="fsb" aria-label="字體大小" title="字體大小">A＋</button><button id="snd" aria-label="音效開關" title="音效">🔊</button><button id="bgm" aria-label="背景音樂開關" title="背景音樂">🎵</button></div>
 </header>
 <div class="wrap" id="app"></div>
+<button id="tts" class="tts" onclick="say()" aria-label="朗讀這一頁" title="朗讀" style="display:none">🗣️</button>
 <div class="pop" id="pop"></div>
 <div class="ov hide" id="intro" role="dialog" aria-modal="true"></div>
 <footer>
   貼圖素材：「喵葫蘆暖心日常」、「微笑袋鼠 (Quokka)暖心陪伴」（© Mental Health Association in Taiwan）。<br>
   本網頁為心理衛生教育小遊戲，不能取代專業評估或治療。<br>
   感到撐不住時，可撥打 <b>1925 安心專線</b>（24 小時）或 <b>1995 生命線</b>。
+<br><a href="https://ppp.mhat.org.tw" target="_blank" rel="noopener noreferrer" style="color:#fff">中華心理衛生協會・心防疫 ppp.mhat.org.tw</a>
 </footer>
 
 <script>
@@ -174,7 +184,7 @@ const BADGES = {
 };
 let got={}; try{got=JSON.parse(localStorage.getItem('xyy_badges')||'{}')}catch(e){}
 function award(id){
-  if(got[id])return; got[id]=1; try{localStorage.setItem('xyy_badges',JSON.stringify(got))}catch(e){}
+  if(got[id])return; got[id]=1; track('badge',id); try{localStorage.setItem('xyy_badges',JSON.stringify(got))}catch(e){}
   const b=BADGES[id]; const p=document.getElementById('pop');
   setTimeout(()=>{p.innerHTML=`${S(b[0])}<div>🏅 獲得徽章<br>${b[1]}</div>`;p.classList.add('show');sfx('badge');setTimeout(()=>p.classList.remove('show'),3200)},900);
   if(id!=='all'&&Object.keys(BADGES).filter(k=>k!=='all').every(k=>got[k]))award('all');
@@ -182,8 +192,11 @@ function award(id){
 function badges(){
   stopAll(); const n=Object.keys(got).length;
   $app.innerHTML=`<div class="panel"><div class="top"><h2>🏅 我的徽章（${n}/${Object.keys(BADGES).length}）</h2></div>
+   <div class="center" style="margin-bottom:12px"><div class="draw" style="width:min(340px,92%);border-color:var(--pink);position:relative">${S('q35','big')}<div class="ribbon">範例</div><h3 style="color:var(--pink);margin:4px 0">🏆 韌性小達人 獎狀</h3><p class="q" style="font-size:20px">你的名字</p><p class="note">完成「心疫苗」全部 ${Object.keys(BADGES).length-1} 項挑戰<br>中華心理衛生協會・心防疫</p></div>
+   <p class="q" style="font-size:17px">🎓 集滿全部 ${Object.keys(BADGES).length-1} 枚徽章，就能獲得專屬「韌性小達人」電子獎狀，還能分享給朋友！</p>
+   ${got.all?'<button class="btn alt" onclick="cert()">🎓 領取我的獎狀</button>':`<div class="mb" style="max-width:340px;margin:6px auto"><i style="width:${Object.keys(got).filter(k=>k!=='all').length/(Object.keys(BADGES).length-1)*100}%"></i></div><p class="note">目前 ${Object.keys(got).filter(k=>k!=='all').length} / ${Object.keys(BADGES).length-1} 枚，再加油！</p>`}</div>
    <div class="bgrid">${Object.entries(BADGES).map(([k,b])=>`<div class="badge ${got[k]?'':'lock'}">${S(b[0])}<b>${b[1]}</b>${b[2]}</div>`).join('')}</div>
-   <div class="center">${shareBar('我在「心疫苗」已收集 '+n+'/'+Object.keys(BADGES).length+' 枚徽章 🏅 一起來挑戰！')}<button class="btn ghost" onclick="home()">回首頁</button></div></div>`;
+   <div class="center">${got.all?'<button class="btn alt" onclick="cert()">🎓 查看獎狀</button>':''}${shareBar('我在「心疫苗」已收集 '+n+'/'+Object.keys(BADGES).length+' 枚徽章 🏅 一起來挑戰！')}<button class="btn ghost" onclick="home()">回首頁</button></div></div>`;
 }
 
 /* ============ 首頁 ============ */
@@ -192,7 +205,8 @@ function home(){
   const G=[['🎮 玩一玩',[['memory()','c01','翻翻看','記憶大考驗，配對消除'],['worry()','c13','煩惱分類','能掌控？不能掌控？'],['emo()','q10','情緒詞彙配對','幫貼圖找到心情'],['reply()','c30','暖心回應','學會好好陪伴別人'],['reframe()','q29','換個角度想','讓想法更有彈性'],['quiz()','q18','心理測驗','心理韌性小檢視']]],
    ['🌿 練一練',[['breath()','c35','呼吸練習','三階段放鬆呼吸'],['ground()','q37','五感著陸','5-4-3-2-1 回到當下'],['stretch()','c39','伸展小體操','動一動放鬆身體'],['mood()','q26','心情氣象站','說說今天的心情']]],
    ['📝 記一記',[['kit()','c33','情緒急救包','我的專屬舒緩清單'],['grat()','c28','感恩小確幸','寫下今天的好事'],['strength()','q17','優點大聲讚','發現自己的優點'],['draw()','c10','今日暖心籤','抽一張小確幸']]],
-   ['🤝 看一看・聊一聊',[['stories()','q09','心理繪本','4 個主題故事'],['duo()','q25','雙人交流卡','和家人朋友聊聊'],['help()','q02','求助地圖','需要時可以找誰'],['badges()','q35','我的徽章','看看收集進度']]]];
+   ['🤝 看一看・聊一聊',[['stories()','q09','心理繪本','4 個主題故事'],['duo()','q25','雙人交流卡','和家人朋友聊聊'],['help()','q02','求助地圖','需要時可以找誰'],['badges()','q35','我的徽章','看看收集進度']]],
+   ['🏫 心防疫・教學・設定',[['lineZone()','c12','LINE 貼圖區','心疫苗貼圖專區'],['mhat()','q01','心防疫資源站','協會網站與延伸資源'],['teach()','q34','教學版','課堂與團體使用'],['about()','c07','關於・設定','說明、隱私、字體']]]];
   $app.innerHTML=`<div class="strip"><span>🏅 已收集 <b>${Object.keys(got).length}</b>/${Object.keys(BADGES).length} 枚徽章</span><button class="btn ghost" style="font-size:14px;padding:8px 14px" onclick="intro(0)">❓ 使用說明</button>${shareBar('我在玩「心疫苗」心理韌性小遊戲：翻翻看、呼吸練習、心理繪本……推薦給你 💗')}</div>`+G.map(g=>`<h3 class="sec">${g[0]}</h3><div class="menu">${g[1].map(m=>`<button class="mcard" onclick="${m[0]}">${S(m[1])}<h2>${m[2]}</h2><p>${m[3]}</p></button>`).join('')}</div>`).join('');
 }
 
@@ -220,7 +234,7 @@ function memory(theme,level){
       moves++; document.getElementById('mv').textContent=moves;
       if(first.dataset.id===id){ const a=first; first=null;
         setTimeout(()=>{a.classList.replace('open','done');c.classList.replace('open','done');sfx('ok')},350);
-        pairs++; document.getElementById('pr').textContent=pairs; document.getElementById('ts').innerHTML='💬 '+pick(TIPS);
+        pairs++; document.getElementById('pr').textContent=pairs; document.getElementById('ts').innerHTML=stkTip(id);
         if(pairs===level){stopAll();setTimeout(()=>memWin(theme,level,moves,sec),900)}
       } else { lock=true; const a=first; first=null; setTimeout(()=>{sfx('no');a.classList.remove('open');c.classList.remove('open');lock=false},850); }
     }; g.appendChild(c); });
@@ -253,13 +267,13 @@ function quiz(){
   stopAll(); let n=0,sc=[];
   const draw=()=>{ const score=sc.reduce((a,b)=>a+b,0); stepBack=()=>{ if(n>0){n--;draw();return true} };
     if(n>=QS.length){ const r=RES.find(x=>score>=x.min&&score<=x.max); sfx('win'); award('quiz');
-      $app.innerHTML=`<div class="panel center result">${S(r.i,'big')}<h3>${r.t}</h3><p class="q">${r.d}</p><ul class="tips">${r.tips.map(t=>`<li>${t}</li>`).join('')}</ul>${shareBar('我在「心疫苗」完成了心理韌性小檢視：'+r.t+' 🌈 你也來玩玩看！')}
+      $app.innerHTML=`<div class="panel center result">${S(r.i,'big')}<h3>${r.t}</h3><p class="q">${r.d}</p>${dimHtml(sc)}${r.min===0?HELPBTN:''}<ul class="tips">${r.tips.map(t=>`<li>${t}</li>`).join('')}</ul>${shareBar('我在「心疫苗」完成了心理韌性小檢視：'+r.t+' 🌈 你也來玩玩看！')}
       <p class="note">※ 本測驗僅供自我覺察與教育用途，不是診斷工具。若持續感到困擾，請洽專業心理師或精神科醫師；急需協助可撥 1925 安心專線。</p>
       <button class="btn" onclick="quiz()">再測一次</button><button class="btn ghost" onclick="home()">回首頁</button></div>`; return; }
     const [q,o]=QS[n];
     $app.innerHTML=`<div class="panel"><div class="top"><h2>心理韌性小測驗</h2><div class="stats"><span>${n+1} / ${QS.length}</span></div></div>
      <div class="bar"><i style="width:${n/QS.length*100}%"></i></div><div class="center">${S(QIMG[n],'big')}</div>
-     <p class="q">${q}</p><div class="opts">${o.map((t,k)=>`<button class="opt" data-k="${k}">${t}</button>`).join('')}</div><p class="note center">沒有對錯，選最接近你真實想法的就好。</p>${n?'<div class="center"><button class="btn ghost" id="pv">◀ 上一題</button></div>':''}</div>`;
+     <p class="q">${q}</p><div class="opts">${shuf(o.map((t,k)=>[t,k])).map(x=>`<button class="opt" data-k="${x[1]}">${x[0]}</button>`).join('')}</div><p class="note center">沒有對錯，選最接近你真實想法的就好。</p>${n?'<div class="center"><button class="btn ghost" id="pv">◀ 上一題</button></div>':''}</div>`;
     $app.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{sc[n]=+b.dataset.k;n++;draw()});
     const pv=document.getElementById('pv'); if(pv)pv.onclick=()=>{n--;draw()};
   }; draw();
@@ -337,7 +351,7 @@ function mood(){
    <div class="mood">${MOODS.map((m,k)=>`<button data-k="${k}">${S(m[1])}${m[0]}</button>`).join('')}</div><button class="btn ghost" onclick="home()">回首頁</button></div>`;
   $app.querySelectorAll('.mood button').forEach(b=>b.onclick=()=>{ const m=MOODS[+b.dataset.k]; sfx('ok'); award('mood'); stepBack=()=>{mood();return true};
    $app.innerHTML=`<div class="panel center result">${S(m[1],'big')}<h3>${m[0]}</h3><p class="q">${m[2]}</p><div class="tips" style="list-style:none;padding-left:18px">💡 小提醒：${m[3]}</div>
-   <p class="note">所有心情都是正常的。若不舒服的感受持續很久，別忘了向身邊的人或專業人員求助。</p>
+   ${['難過','孤單','疲累','緊張'].includes(m[0])?HELPBTN:''}<p class="note">所有心情都是正常的。若不舒服的感受持續很久，別忘了向身邊的人或專業人員求助。</p>
    <button class="btn" onclick="mood()">再選一次</button><button class="btn alt" onclick="breath()">做呼吸練習</button><button class="btn ghost" onclick="home()">回首頁</button></div>`; });
 }
 
@@ -379,7 +393,7 @@ const RP=[
  ['長輩說：「我現在手機都不太會用，覺得自己很沒用。」','c30',[['學習需要時間，我陪您慢慢學，您已經很棒了。',1],['這很簡單啊，怎麼學不會？',0],['不會就不要用了。',0]],'用鼓勵與耐心，替對方保留自信。']
 ];
 function reply(){
-  stopAll(); const qs=shuf(RP); let n=0,ok=0;
+  stopAll(); const qs=[...shuf(RP).slice(0,4),...shuf(RPH).slice(0,2)]; let n=0,ok=0;
   const draw=()=>{
     if(n>=qs.length){ sfx('win'); if(ok>=4)award('reply'); $app.innerHTML=`<div class="panel center result">${S(ok>=4?'c09':'c06','big')}<h3>答對 ${ok} / ${qs.length} 題</h3><p class="q">好好傾聽，是送給別人最溫暖的禮物。</p>
       <button class="btn" onclick="reply()">再玩一次</button><button class="btn ghost" onclick="home()">回首頁</button></div>`; return; }
@@ -402,7 +416,7 @@ const RF=[
  ['都是我的錯，我連累了大家。','c07',['我有責任的部分可以改進，但不是所有事都由我決定。','我什麼都做不好。'],'區分「自己能負責的」與「不屬於自己的」。']
 ];
 function reframe(){
-  stopAll(); const qs=shuf(RF); let n=0,ok=0;
+  stopAll(); const qs=[...shuf(RF).slice(0,4),...shuf(RFH).slice(0,2)]; let n=0,ok=0;
   const draw=()=>{
     if(n>=qs.length){ sfx('win'); if(ok>=4)award('reframe'); $app.innerHTML=`<div class="panel center result">${S(ok>=4?'q18':'q03','big')}<h3>答對 ${ok} / ${qs.length} 題</h3><p class="q">想法不等於事實，換個角度，心情也會不一樣。</p>
       <button class="btn" onclick="reframe()">再玩一次</button><button class="btn ghost" onclick="home()">回首頁</button></div>`; return; }
@@ -530,7 +544,7 @@ const HELP=[['我現在有傷害自己或不想活的念頭','🚨','請先和�
 function help(){
   stopAll(); $app.innerHTML=`<div class="panel center"><h2 style="color:var(--pink)">🧭 求助地圖</h2>${S('q02','big')}<p class="q">現在的狀況比較像哪一種？</p>
    <div class="opts">${HELP.map((h,i)=>`<button class="opt" data-i="${i}">${h[1]} ${h[0]}</button>`).join('')}</div><div class="toast hide" id="ts"></div>
-   <p class="note">專線號碼與服務時間可能調整，請以官方公告為準。這裡的資訊不能取代專業評估。</p>${back}</div>`;
+   <p class="note">專線號碼與服務時間可能調整，請以官方公告為準。這裡的資訊不能取代專業評估。</p><button class="btn alt" onclick="mhat()">🔗 更多資源</button>${back}</div>`;
   $app.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{const t=document.getElementById('ts');t.classList.remove('hide');t.innerHTML=HELP[+b.dataset.i][2];sfx('ok')});
 }
 
@@ -547,14 +561,188 @@ function duo(lv){
   $app.innerHTML=`<div class="panel center"><h2 style="color:var(--pink)">🤝 ${lv}卡</h2><div class="draw" id="dc"><p class="q">按「抽卡」開始</p></div><button class="btn" id="dd">🎴 抽卡</button><button class="btn alt" onclick="duo()">換難度</button>${back}</div>`;
   document.getElementById('dd').onclick=()=>{ sfx('flip'); const q=deck[k%deck.length]; document.getElementById('dc').innerHTML=`${S(pick(ALL),'big')}<p class="note">輪到 <b>${k%2?'B':'A'}</b> 回答</p><p class="q">${q}</p>${shareBar('來聊聊吧 💬 '+q+'（來自「心疫苗」雙人交流卡）')}`; k++; if(k===5)award('duo'); };
 }
+/* ============ 擴充 2：測驗面向、貼圖語錄、題庫、教學、後台… ============ */
+const LINE_STORE='https://store.line.me/stickershop/author/2614196/zh-Hant', MH='https://ppp.mhat.org.tw';
+const ext=(u,l,c='btn line')=>`<a class="${c}" href="${u}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;display:inline-block">${l}</a>`;
+const HELPBTN='<div class="toast">💗 想找人聊聊嗎？你不需要一個人撐。<br><button class="btn" onclick="help()">看看可以找誰</button></div>';
+
+/* ---- 測驗面向 ---- */
+const QD=['flex','reg','sup','care','flex','reg','sup','care'];
+const DIM={reg:['情緒調節','🌬️',['breath()','呼吸練習'],['ground()','五感著陸']],flex:['思考彈性','🔄',['reframe()','換個角度想'],['emo()','情緒詞彙配對']],sup:['求助與支持','🤝',['reply()','暖心回應'],['help()','求助地圖']],care:['自我照顧','🧰',['kit()','情緒急救包'],['grat()','感恩小確幸']]};
+function dimHtml(sc){
+  const s={reg:0,flex:0,sup:0,care:0}; sc.forEach((v,i)=>s[QD[i]]+=v);
+  const ks=Object.keys(s).sort((a,b)=>s[b]-s[a]), lo=DIM[ks[3]], hi=DIM[ks[0]];
+  return `<div class="tips" style="list-style:none;padding-left:18px">${ks.map(k=>`<div>${DIM[k][1]} ${DIM[k][0]}　${s[k]}/4<div class="mb"><i style="width:${s[k]/4*100}%"></i></div></div>`).join('')}
+   <p>💪 目前較穩的面向：<b>${hi[0]}</b><br>🌱 可以多練習：<b>${lo[0]}</b></p><button class="btn" onclick="${lo[2][0]}">${lo[2][1]}</button><button class="btn alt" onclick="${lo[3][0]}">${lo[3][1]}</button></div>`;
+}
+
+/* ---- 貼圖語錄（翻翻看配對成功時顯示） ---- */
+const CAPC='Good Job!|超級認同!|I Can Do It!|多愛自己一點|撐過就是你的|會越來越好的|謹記在心|我們都很棒!|太厲害了!|今日運勢 大吉|超開心~|最喜歡你了~|拒絕內耗|Good Luck!|記得微笑||保持聯絡|人生是自己的!|拒拒...|有個好夢|一切隨緣|原來如此!|Let\'s go!|我陪你|好期待啊!|專注 保持|多看好的一面|覺得幸福~|該出門走走啦!|你說我聽||分享更快樂|平安順心|慢慢來沒關係|身心舒暢~|你還好嗎?|借我躲一下|享受當下|起來動一動!|分享喜悅'.split('|');
+const CAPQ='一起想辦法|需要幫忙嗎?|別放棄|越挫越勇|現在去找你|加油!|找到你的節奏|允許不完美|辛苦了|笑一個|哭出來沒關係|看看壓力來源|多喝水|要吃好喔!|還有時間不用急|暫時撤退|今天的你也很棒|你一定行!|獨一無二|不必比較|換位思考|克服恐懼|換個角度看也不錯|為了自己努力!|在一起真好|來聊聊吧|一起衝|一起散心吧|轉個念|學會放手|都是經驗...|慢慢累積|該放假了|加我一把|值得紀念|常聯絡喔!||||'.split('|');
+const CATC='ABACFEEAAEEBCEEBBACDCEFBEEEBFBDBDCDBDDFB', CATQ='BBFFBADCDECEDDCDAAACEFEABBFDECCCDBEBDDBB';
+const EXT=[['你已經比自己想的更有力量。','為自己的努力鼓鼓掌吧。','相信自己，一小步一小步來。'],['不用一個人扛，找個信任的人聊聊。','陪伴與傾聽，是最溫暖的支持。','主動關心別人，也讓自己更有力量。'],['不完美也沒關係，接納自己的樣子。','有些事可以慢慢來，也可以學著放下。','情緒有出口，心就比較輕鬆。'],['照顧身體，也是在照顧心情。','累了就休息，休息是為了走更遠。','喝水、睡好、吃好，是最基本的心理保養。'],['換個角度，心情也會跟著不同。','多看看好的一面，也留意身邊的小確幸。','把注意力放在現在、放在能做的事。'],['把大挑戰拆成小步驟，一步一步來。','願意嘗試，就是勇氣。','先動起來，往往比想像中容易。']];
+function stkTip(id){ const q=id[0]==='q', i=+id.slice(1)-1, cap=(q?CAPQ:CAPC)[i]; return '💬 '+(cap?'「'+cap+'」　':'')+pick(EXT['ABCDEF'.indexOf((q?CATQ:CATC)[i])]); }
+
+/* ---- 題庫擴充（先簡單、後進階） ---- */
+RP.push(
+ ['同事說：「我最近睡不好，一直在想工作。」','q12',[['那你就少想一點。',0],['聽起來你很煩惱，想說說是哪些事嗎？',1],['我也是啊，更慘。',0]],'好奇地詢問、讓對方說，比直接建議或比較更有幫助。'],
+ ['孩子說：「我今天被同學嘲笑了。」','c36',[['不要理他們就好。',0],['聽起來你很難過，發生了什麼事？',1],['你一定也有做錯什麼吧。',0]],'先聽孩子說，不急著評斷或給答案。'],
+ ['朋友說：「我失戀了，覺得好痛。」','q11',[['天涯何處無芳草！',0],['這真的很難受，我陪你。',1],['早就說過他不適合你。',0]],'先陪伴與肯定感受，不急著安慰或評論。'],
+ ['家人說：「我最近什麼都提不起勁。」','c16',[['你是不是太懶了？',0],['你這樣多久了？我很關心你，也可以陪你找專業的幫忙。',1],['振作一點就好了。',0]],'關心狀況，並溫和提到專業協助，避免責備。'],
+ ['朋友說：「我被主管罵了，覺得好丟臉。」','c36',[['那有什麼好丟臉的。',0],['被罵一定很不好受，你現在還好嗎？',1],['主管就是這樣啦，習慣就好。',0]],'先肯定感受，再討論後續。']);
+const RPH=[
+ ['朋友一直說：「我什麼都做不好。」你想鼓勵他，哪種比較好？','q18',[['「你很棒啊，別這麼說！」',0],['「你現在很挫折。可以說說剛剛發生什麼事嗎？」',1],['「大家都有缺點，你不要太敏感。」',0]],'直接否定感受，容易讓人覺得不被理解；先接住情緒，再慢慢看事情。'],
+ ['對方說：「我不想活了。」你最好的第一步是？','q26',[['「別亂講，想開一點。」',0],['「謝謝你告訴我，我很擔心你。你現在安全嗎？我陪你打 1925。」',1],['「你走了，家人怎麼辦？」',0]],'要認真看待、直接關心安全，並連結專業資源（1925），避免責備或說教。'],
+ ['朋友抱怨：「我室友真的很吵，快氣死了。」','c19',[['「那你直接去罵他啊！」',0],['「聽起來你很火大。你想怎麼處理呢？」',1],['「你就是太計較。」',0]],'用開放式提問，協助對方自己想辦法，而不是替他決定或批評。'],
+ ['長輩說：「我不想麻煩別人，自己忍就好。」','c30',[['「好吧，那你自己忍著。」',0],['「您願意告訴我，我不覺得麻煩，我們一起想辦法。」',1],['「你這樣只會讓大家擔心。」',0]],'讓對方知道求助不是麻煩，並提供具體陪伴。'],
+ ['朋友說：「我考砸了，想一個人靜一靜。」','q16',[['「不行，你一定要說出來！」',0],['「好，我尊重你。我在這裡，需要時隨時找我。」',1],['「那我就不管你了。」',0]],'尊重對方的節奏，同時讓對方知道你的支持仍在。']];
+RF.push(
+ ['他沒回我訊息，一定是討厭我了。','q05',['可能他在忙，我可以晚點再問問。','他就是故意不理我。'],'「讀心」常讓我們跳到最壞的結論，先想想其他可能。'],
+ ['這次比賽輸了，我所有努力都白費了。','q04',['輸了很難過，但我學到的東西還在。','都白費了，以後不要再試了。'],'結果不好，不代表過程沒有價值。'],
+ ['我一定要把每件事做到完美，不然就是失敗。','q08',['做到「夠好」就是很大的進步。','不完美就是失敗。'],'「全有或全無」的想法會讓人很疲累。'],
+ ['大家都比我厲害，我一點用都沒有。','q20',['每個人有不同的強項，我也有自己的特色。','我什麼都比不上別人。'],'比較只看到別人的一面，也會忽略自己的優點。'],
+ ['我現在心情不好，今天一定會很糟。','c27',['現在心情不好，但今天還是可能出現好事。','今天已經毀了。'],'一個時刻的感受，不等於一整天。']);
+const RFH=[
+ ['我需要別人幫忙，代表我很沒用。','q02',['需要幫忙是人之常情，求助也是一種能力。','我應該自己搞定一切。'],'互相支持，是人與人之間很自然的事。'],
+ ['朋友今天沒找我，他們不想跟我玩了。','c17',['朋友可能各有安排，我可以主動約約看。','他們一定很討厭我。'],'先找其他可能的原因，再用行動確認。'],
+ ['我一定要讓每個人都喜歡我。','c18',['我可以對人友善，但無法讓每個人都喜歡我，這也沒關係。','只要有人不喜歡我，我就是失敗。'],'「讓所有人滿意」不可能，也會讓自己很累。'],
+ ['如果我現在不做完這件事，以後一定會後悔。','c05',['我可以先評估重要性，也允許自己休息。','一定要現在做完，不然就完了。'],'「一定要」的想法常讓壓力變得更大。'],
+ ['事情會變成這樣，都是我的問題。','c07',['有些部分我可以改進，也有些原因不在我身上。','全部都是我的錯。'],'區分自己能負責的部分，避免全盤自責。']];
+
+/* ---- LINE 貼圖區、心防疫資源站 ---- */
+function lineZone(){
+  $app.innerHTML=`<div class="panel center"><h2 style="color:var(--pink)">💚 心疫苗 LINE 貼圖區</h2><p class="q" style="font-size:18px">把暖心帶進每天的對話！中華心理衛生協會「心防疫」推出的心疫苗系列貼圖，讓問候、陪伴與加油打氣更有溫度。</p>
+   <div class="bgrid">${shuf(ALL).slice(0,8).map(i=>`<div class="badge">${S(i)}</div>`).join('')}</div>
+   <p>${ext(LINE_STORE,'🛍️ 前往 LINE 貼圖商店（全部貼圖）')}</p><p>${ext('https://store.line.me/stickershop/product/37116176/zh-Hant','🦘 微笑袋鼠暖心陪伴','btn alt')}${ext(MH+'/stickers','📖 協會貼圖介紹','btn ghost')}</p>
+   ${shareBar('推薦你「心疫苗」LINE 貼圖 💚 讓暖心陪伴成為對話中最溫柔的力量！\n'+LINE_STORE)}<p class="note">貼圖版權屬於中華心理衛生協會；購買與使用請依 LINE 商店說明。</p>${back}</div>`;
+}
+const MHL=[['認識心疫苗','/psychological-vaccine'],['手機桌布','/wallpaper'],['祝福小卡','/blessingcard'],['四格漫畫','/pv-comic'],['音訊','/music'],['影片','/pv-video'],['圖文','/pv-picture'],['善行','/charity'],['校園串連','/school'],['放心連結（夥伴資源）','/peace-links'],['安心防疫專區','/peace'],['關於心防疫','/about-5']];
+const PARTNER=[['中華心理衛生協會','http://www.mhat.org.tw/'],['華文心理健康網（董氏基金會）','http://www.etmh.org/'],['心快活 心理健康學習平台','https://wellbeing.mohw.gov.tw/nor/main'],['衛福部 心理健康司','https://dep.mohw.gov.tw/DOMHAOH/cp-4740-52615-107.html'],['台北市社區心理衛生中心','https://mental-health.gov.taipei/'],['精神健康基金會','http://www.brainlohas.org/'],['台灣輔導與諮商學會','http://www.guidance.org.tw/']];
+function mhat(){
+  const a=(u,l)=>`<a class="opt" href="${u}" target="_blank" rel="noopener noreferrer" style="display:block;text-decoration:none">🔗 ${l}</a>`;
+  $app.innerHTML=`<div class="panel"><div class="top"><h2>🌐 心防疫資源站</h2></div><p class="q" style="font-size:18px">「心防疫」是中華心理衛生協會的專案小組，推廣「心疫苗」（心理韌性素材）與正向心理健康活動。想要更多內容，可以到官方網站逛逛：</p>
+   <div class="opts two">${MHL.map(x=>a(MH+x[1],x[0])).join('')}</div>
+   <h3 class="h3">夥伴資源（取自「放心連結」）</h3><div class="opts two">${PARTNER.map(x=>a(x[1],x[0])).join('')}</div>
+   <p class="note">聯絡：中華心理衛生協會 心防疫團隊｜02-25576980｜mhat.overcovid19@gmail.com</p><div class="center">${ext(MH,'前往心防疫官網','btn')}${ext(LINE_STORE,'LINE 貼圖商店')}${back}</div></div>`;
+}
+
+/* ---- 設定、隱私、關於 ---- */
+const ABOUT={ver:'1.1',date:'2026-11-19',reviewer:'',reviewDate:''};
+function setFS(i){ const w=document.querySelector('.wrap'); if(w)w.style.zoom=[1,1.15,1.3][i]; LS.s('xyy_fs',i); }
+function about(){
+  const fs=LS.g('xyy_fs',0), tr=!LS.g('xyy_noTrack',0);
+  $app.innerHTML=`<div class="panel"><div class="top"><h2>⚙️ 關於・設定</h2></div>
+   <h3 class="h3">🔠 字體大小</h3><div class="chips">${['標準','大','特大'].map((n,i)=>`<button class="chip${i===fs?' on':''}" data-f="${i}">${n}</button>`).join('')}</div>
+   <h3 class="h3">🗑️ 我的資料</h3><p class="note">日記、急救包、徽章與設定只存在這台裝置的瀏覽器裡。共用裝置時，請在使用後清除。</p><div class="center"><button class="btn alt" id="c1">清除日記與急救包</button><button class="btn" id="c2">清除全部資料</button></div>
+   <div class="center">${ext(MH,'心防疫官網','btn')}${back}</div></div>`;
+  $app.querySelectorAll('[data-f]').forEach(b=>b.onclick=()=>{setFS(+b.dataset.f);about()});
+  const c1=document.getElementById('c1'),c2=document.getElementById('c2');
+  c1.onclick=()=>{try{['xyy_gr','xyy_kit'].forEach(k=>localStorage.removeItem(k))}catch(e){} c1.textContent='已清除 ✅'};
+  c2.onclick=()=>{ if(!c2.dataset.s){c2.dataset.s=1;c2.textContent='再按一次確認清除';return}
+    try{Object.keys(localStorage).filter(k=>k.startsWith('xyy_')).forEach(k=>localStorage.removeItem(k))}catch(e){} got={};bdone={};read={};setFS(0);c2.textContent='已清除 ✅'; };
+}
+
+/* ---- 電子獎狀 ---- */
+function cert(nm){
+  if(nm===undefined){ $app.innerHTML=`<div class="panel center"><h2 style="color:var(--pink)">🎓 韌性小達人獎狀</h2>${S('q35','big')}<p class="q">你集滿了所有徽章！輸入名字，產生專屬獎狀。</p><input class="in2" id="nm" maxlength="12" placeholder="你的名字（可以用暱稱）"><button class="btn" id="mk">產生獎狀</button>${back}</div>`;
+    document.getElementById('mk').onclick=()=>cert(document.getElementById('nm').value.trim()||'暖心夥伴'); return; }
+  sfx('win'); const n=Object.keys(BADGES).length-1;
+  $app.innerHTML=`<div class="panel center"><div class="draw" style="width:min(380px,96%);border-color:var(--pink)">${S('q35','big')}<h2 style="color:var(--pink)">🏆 韌性小達人 獎狀</h2><p class="q">${esc(nm)}</p><p>完成「心疫苗」全部 ${n} 項挑戰，持續練習、照顧自己與他人。</p><p class="note">${new Date().toLocaleDateString('zh-TW')}｜中華心理衛生協會 心防疫</p></div>
+   ${shareBar('我在「心疫苗」集滿了全部徽章，成為「韌性小達人」🏆 一起來挑戰！')}<p class="note">也可以截圖保存。</p>${back}</div>`;
+}
+
+/* ---- 教學版：流程、討論題、全班投票、學習單 ---- */
+const DISC=[['小袋鼠的勇氣日','緊張時身體有什麼感覺？小袋鼠用了哪些方法？你還想到哪些？'],['喵葫蘆的壓力山大','你最近的壓力是什麼？哪些是你能改變的？你會怎麼安排休息？'],['雨天的陪伴','難過時，你希望別人怎麼陪你？你能為難過的人做什麼？'],['不必比較的一天','你有哪三個優點？怎麼把「比較」變成「欣賞」？']];
+function teach(){
+  $app.innerHTML=`<div class="panel"><div class="top"><h2>🏫 教學版</h2></div><p class="q" style="font-size:18px">適合課堂、社團、工作坊或家庭活動（約 40 分鐘）。</p>
+   <h3 class="h3">建議流程</h3><ol class="tips"><li>暖身 5 分：<a href="#" onclick="mood();return false">心情氣象站</a>，每人說一個天氣</li><li>主題 15 分：一起讀一本<a href="#" onclick="stories();return false">繪本</a>或玩<a href="#" onclick="worry();return false">煩惱分類</a></li><li>討論 10 分：<b>全班投票</b>＋下方討論題</li><li>練習 5 分：<a href="#" onclick="breath();return false">呼吸練習</a>或<a href="#" onclick="ground();return false">五感著陸</a></li><li>收尾 5 分：<a href="#" onclick="strength();return false">優點大聲讚</a></li></ol>
+   <h3 class="h3">繪本討論題</h3><ul class="tips">${DISC.map(d=>`<li><b>${d[0]}</b>：${d[1]}</li>`).join('')}</ul>
+   <div class="center"><button class="btn" onclick="vote()">🗳️ 全班投票</button><button class="btn alt" onclick="worksheet()">📝 學習單</button><button class="btn ghost" id="pj">🔠 投影大字</button>${back}</div>
+   <p class="note">小提醒：討論時尊重彼此，不強迫分享；若有同學情緒受影響，請由輔導老師或專業人員協助。</p></div>`;
+  document.getElementById('pj').onclick=()=>{setFS(2)};
+}
+function vote(){
+  let q,opts,why; if(Math.random()<.5){const r=pick([...RP,...RPH]);q=r[0];opts=r[2];why=r[3]}else{const f=pick([...RF,...RFH]);q='心裡的小聲音說：「'+f[0]+'」，哪個想法比較有彈性？';opts=[[f[2][0],1],[f[2][1],0]];why=f[3]}
+  const c=opts.map(()=>0); let sh=0;
+  const d=()=>{ const tot=c.reduce((a,b)=>a+b,0)||1;
+    $app.innerHTML=`<div class="panel center"><h2 style="color:var(--pink)">🗳️ 全班投票</h2><p class="q" style="font-size:clamp(20px,4vw,28px)">${esc(q)}</p><p class="note">請全班舉手，老師按＋記錄人數。</p>
+     ${opts.map((o,i)=>`<div class="opt ${sh?(o[1]?'good':'bad'):''}" style="margin:8px 0;text-align:left"><div>${esc(o[0])}</div><div style="margin-top:6px;display:flex;align-items:center;gap:8px"><button class="btn ghost" data-i="${i}" data-d="-1">－</button><b style="font-size:22px">${c[i]}</b><button class="btn" data-i="${i}" data-d="1">＋</button>${sh?`<span>${Math.round(c[i]/tot*100)}%</span>`:''}</div></div>`).join('')}
+     ${sh?`<div class="toast">💡 ${why}</div>`:''}<button class="btn alt" id="rv">${sh?'隱藏答案':'公布答案'}</button><button class="btn" onclick="vote()">下一題</button>${back}</div>`;
+    $app.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{c[+b.dataset.i]=Math.max(0,c[+b.dataset.i]+ +b.dataset.d);d()});
+    document.getElementById('rv').onclick=()=>{sh=1-sh;d()}; };
+  d();
+}
+function worksheet(){
+  const L=n=>'<div class="ln"></div>'.repeat(n);
+  $app.innerHTML=`<div class="panel ws"><div class="top"><h2>📝 心疫苗學習單</h2><button class="btn noprint" onclick="window.print()">🖨️ 列印</button></div><p>姓名：＿＿＿＿＿＿　日期：＿＿＿＿＿＿</p>
+   <p><b>1. 今天的心情像什麼天氣？</b>　☀️ 晴　⛅ 多雲　🌧️ 雨　⛈️ 雷雨　🌈 彩虹</p>
+   <p><b>2. 我最近的壓力來源：</b></p>${L(2)}<p>　我能掌控的：＿＿＿＿＿＿＿＿＿　我無法控制的：＿＿＿＿＿＿＿＿＿</p>
+   <p><b>3. 我的情緒急救包（心情不好時我可以…）</b></p>${L(3)}<p><b>4. 今天的 3 件小確幸</b></p>${L(3)}<p><b>5. 我想對自己說：</b></p>${L(2)}
+   <p class="note">感到撐不住時，請撥 1925 安心專線（24 小時）或找信任的人與專業人員聊聊。｜中華心理衛生協會 心防疫</p><div class="center noprint">${back}</div></div>`;
+}
+
+/* ---- 匿名使用統計與管理後台 ---- */
+/* 要統計「所有使用者」：把 apps-script-analytics.gs 部署成網頁應用程式，並將網址填入 endpoint */
+const ANALYTICS={endpoint:''};
+let VID=LS.g('xyy_vid',0); if(!VID){VID=Math.random().toString(36).slice(2,10)+Date.now().toString(36);LS.s('xyy_vid',VID)}
+const SID=Math.random().toString(36).slice(2,9); let actMs=0, lastV=Date.now(), vis=!document.hidden;
+function track(t,x,sec){
+  if(LS.g('xyy_noTrack',0))return; const e=[Date.now(),t,VID,SID,x||'',sec||0];
+  if(t==='dur'){const L=LS.g('xyy_ev',[]).filter(r=>!(r[1]==='dur'&&r[3]===SID));L.push(e);LS.s('xyy_ev',L.slice(-1500))}else{const L=LS.g('xyy_ev',[]);L.push(e);LS.s('xyy_ev',L.slice(-1500))}
+  if(ANALYTICS.endpoint){try{navigator.sendBeacon(ANALYTICS.endpoint,JSON.stringify({ts:e[0],t,v:VID,s:SID,x:e[4],sec:e[5]}))}catch(x2){}}
+}
+const totSec=()=>Math.round((actMs+(vis?Date.now()-lastV:0))/1000);
+document.addEventListener('visibilitychange',()=>{ if(document.hidden){actMs+=Date.now()-lastV;vis=false;track('dur','',totSec())}else{lastV=Date.now();vis=true} });
+addEventListener('pagehide',()=>track('dur','',totSec()));
+setInterval(()=>{if(vis&&totSec()%30<5)track('dur','',totSec())},5000);
+track('open');
+
+const ACTN={memory:'翻翻看',quiz:'心理測驗',stories:'繪本書櫃',story:'繪本閱讀',mood:'心情氣象站',breath:'呼吸練習',reply:'暖心回應',reframe:'換個角度想',draw:'今日暖心籤',kit:'情緒急救包',grat:'感恩小確幸',ground:'五感著陸',worry:'煩惱分類',emo:'情緒詞彙配對',stretch:'伸展小體操',strength:'優點大聲讚',help:'求助地圖',duo:'雙人交流卡',badges:'我的徽章',lineZone:'LINE貼圖區',mhat:'心防疫資源站',teach:'教學版',vote:'全班投票',worksheet:'學習單',about:'關於・設定',cert:'獎狀'};
+function agg(ev){
+  const dk=ts=>new Date(ts+8*36e5).toISOString().slice(0,10), S={}, D={}, H=Array(24).fill(0), A={}, B={};
+  ev.forEach(([ts,t,v,s,x,sec])=>{ const o=S[s]=S[s]||{d:dk(ts),v,sec:0};
+    if(t==='open'){o.d=dk(ts);H[new Date(ts+8*36e5).getUTCHours()]++} else if(t==='dur')o.sec=Math.max(o.sec,sec); else if(t==='act')A[x]=(A[x]||0)+1; else if(t==='badge')B[x]=(B[x]||0)+1; });
+  Object.values(S).forEach(o=>{const d=D[o.d]=D[o.d]||{n:0,u:new Set(),sec:0};d.n++;d.u.add(o.v);d.sec+=o.sec});
+  return {D,H,A,B};
+}
+const fmtS=s=>s>=60?Math.floor(s/60)+' 分 '+(s%60)+' 秒':s+' 秒';
+const barH=(v,m)=>`<div class="mb"><i style="width:${m?v/m*100:0}%"></i></div>`;
+async function admin(pw){
+  const ep=ANALYTICS.endpoint, key=pw!==undefined?pw:(sessionStorage.getItem('xyy_key')||'');
+  if(ep&&!key){ $app.innerHTML=`<div class="panel center"><h2 style="color:var(--pink)">🔐 管理後台</h2><p>請輸入管理密碼</p><input class="in2" id="pw" type="password" autocomplete="off"><button class="btn" id="go">登入</button>${back}</div>`;
+    document.getElementById('go').onclick=()=>admin(document.getElementById('pw').value); return; }
+  $app.innerHTML='<div class="panel center"><p class="q">載入中…</p></div>';
+  let ev=[], src='local', err='';
+  try{ if(ep){ const j=await (await fetch(ep+'?key='+encodeURIComponent(key))).json(); if(j.error)throw 0; ev=j.events; src='remote'; try{sessionStorage.setItem('xyy_key',key)}catch(e){} } else ev=LS.g('xyy_ev',[]); }
+  catch(e){ err='無法讀取資料，請確認網址與密碼。'; try{sessionStorage.removeItem('xyy_key')}catch(x){} }
+  const {D,H,A,B}=agg(ev), today=new Date(Date.now()+8*36e5).toISOString().slice(0,10), td=D[today]||{n:0,u:new Set(),sec:0};
+  const days=Object.keys(D).sort().reverse().slice(0,14), mx=Math.max(1,...days.map(k=>D[k].n)), hm=Math.max(1,...H);
+  const top=Object.entries(A).sort((a,b)=>b[1]-a[1]).slice(0,10), bt=Object.entries(B).sort((a,b)=>b[1]-a[1]);
+  const w7=days.slice(0,7).reduce((a,k)=>a+D[k].n,0), csv='日期,開啟次數,不重複訪客,平均停留秒數\n'+days.map(k=>[k,D[k].n,D[k].u.size,Math.round(D[k].sec/D[k].n)].join(',')).join('\n');
+  $app.innerHTML=`<div class="panel"><div class="top"><h2>📊 管理後台</h2></div>${err?`<div class="toast">⚠️ ${err}</div>`:''}
+   <p class="note">${src==='remote'?'資料來源：雲端（所有使用者），時間為台灣時間。':'⚠️ 目前只顯示「這台裝置」的紀錄。要統計所有使用者，請部署 apps-script-analytics.gs，並把網址填入程式中的 ANALYTICS.endpoint（需部署在 Vercel／GitHub Pages 等一般網站）。'}</p>
+   <div class="bgrid"><div class="badge"><b>${td.n}</b>今日開啟次數</div><div class="badge"><b>${td.u.size}</b>今日不重複訪客</div><div class="badge"><b>${td.n?fmtS(Math.round(td.sec/td.n)):'—'}</b>今日平均停留</div><div class="badge"><b>${w7}</b>近 7 日開啟</div></div>
+   <h3 class="h3">每日開啟次數（近 14 天）</h3>${days.map(k=>`<div style="font-size:13px">${k}　開啟 <b>${D[k].n}</b>・訪客 <b>${D[k].u.size}</b>・平均停留 <b>${fmtS(Math.round(D[k].sec/D[k].n))}</b>${barH(D[k].n,mx)}</div>`).join('')||'<p class="note">尚無資料</p>'}
+   <h3 class="h3">一天中的開啟時段（0～23 時）</h3><div style="display:flex;align-items:flex-end;gap:2px;height:90px">${H.map((v,i)=>`<div title="${i} 時：${v} 次" style="flex:1;background:var(--pink);height:${Math.max(2,v/hm*100)}%;border-radius:3px 3px 0 0"></div>`).join('')}</div><div class="note" style="display:flex;justify-content:space-between"><span>0</span><span>6</span><span>12</span><span>18</span><span>23</span></div>
+   <h3 class="h3">熱門活動</h3>${top.map(([k,v])=>`<div style="font-size:13px">${ACTN[k]||k}　<b>${v}</b>${barH(v,top[0][1])}</div>`).join('')||'<p class="note">尚無資料</p>'}
+   <h3 class="h3">徽章獲得次數</h3>${bt.map(([k,v])=>`<div style="font-size:13px">${BADGES[k]?BADGES[k][1]:k}　<b>${v}</b></div>`).join('')||'<p class="note">尚無資料</p>'}
+   <div class="center"><button class="btn alt" id="cp">📋 複製每日數據 CSV</button><button class="btn ghost" onclick="admin()">重新整理</button>${back}</div></div>`;
+  document.getElementById('cp').onclick=e=>{try{navigator.clipboard.writeText(csv);e.target.textContent='✅ 已複製'}catch(x){}};
+}
+
+/* ---- 朗讀 ---- */
+function say(){ const s=window.speechSynthesis; if(!s)return; if(s.speaking){s.cancel();return}
+  const txt=[...document.querySelectorAll('#app .stxt,#app .q,#app .opt,#app h2,#app h3')].map(e=>e.innerText).join('。'); const u=new SpeechSynthesisUtterance(txt); u.lang='zh-TW'; u.rate=.9; s.speak(u); }
+document.getElementById('fsb').onclick=()=>{setFS((LS.g('xyy_fs',0)+1)%3)}; setFS(LS.g('xyy_fs',0));
+
 /* ============ 返回 / 導覽 ============ */
 let stepBack=null; const NAV=[];
-['home','memory','quiz','stories','story','mood','breath','reply','reframe','draw','kit','grat','ground','worry','emo','stretch','strength','help','duo','badges'].forEach(n=>{
+['home','memory','quiz','stories','story','mood','breath','reply','reframe','draw','kit','grat','ground','worry','emo','stretch','strength','help','duo','badges','lineZone','mhat','teach','vote','worksheet','about','admin','cert'].forEach(n=>{
   const f=window[n];
   window[n]=function(...a){ const key=n+JSON.stringify(a);
     if(n==='home')NAV.length=0;
     if(!NAV.length||NAV[NAV.length-1][2]!==key)NAV.push([n,a,key]);
-    stepBack=null; document.getElementById('bk').style.visibility=NAV.length>1?'visible':'hidden';
+    stepBack=null; if(n!=='home'&&n!=='admin')track('act',n); try{speechSynthesis.cancel()}catch(e){} document.getElementById('bk').style.visibility=NAV.length>1?'visible':'hidden'; document.getElementById('tts').style.display=(NAV.length>1&&window.speechSynthesis)?'block':'none';
     window.scrollTo(0,0); return f.apply(this,a); };
 });
 function goBack(){ if(stepBack&&stepBack()===true)return; if(NAV.length<2)return; NAV.pop(); const [n,a]=NAV.pop(); window[n](...a); }
@@ -564,7 +752,7 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape')goBack(); });
 const SHARE_URL=''; /* 部署後可填入你的網址；留空則使用目前網頁網址 */
 let SH='';
 const curUrl=()=>{ if(SHARE_URL)return SHARE_URL; try{ if(/^https?:/.test(location.href))return location.href.split('#')[0]; }catch(e){} return ''; };
-const shareMsg=()=>SH+(curUrl()?'\n'+curUrl():'');
+const shareMsg=()=>SH+(curUrl()?'\n'+curUrl():'')+'\n更多心疫苗：https://ppp.mhat.org.tw';
 function shareBar(t){ SH=t; return '<div class="sharebar"><button class="btn line" onclick="shareLine()">💬 用 LINE 分享</button><button class="btn ghost" onclick="copyShare(this)">📋 複製文字</button></div>'; }
 function shareLine(){ const link='https://line.me/R/msg/text/?'+encodeURIComponent(shareMsg()); let w=null; try{w=window.open(link,'_blank')}catch(e){} if(w){try{w.opener=null}catch(e){}} else copyShare(); }
 function copyShare(btn){
@@ -576,7 +764,7 @@ function copyShare(btn){
 const INTRO=[['c01','歡迎來到「心疫苗」','這裡有小遊戲、放鬆練習、繪本和小工具，陪你練習面對生活的挑戰。<br>全年齡都能玩，慢慢來，沒有輸贏。'],
  ['q18','怎麼玩？','首頁分成「玩一玩、練一練、記一記、看一看」四區，點任何一張卡片就能開始。<br>完成活動可以收集徽章 🏅'],
  ['c30','好用的小功能','左上角「← 返回」可以回到上一頁；右上角可以開關音效與背景音樂；喜歡的內容可以用 LINE 分享給朋友。'],
- ['q26','溫馨提醒','這裡是心理衛生教育小遊戲，不是診斷或治療。<br>感到撐不住時，請撥 <b>1925</b> 安心專線（24 小時），或找信任的人與專業人員聊聊。']];
+ ['q26','溫馨提醒','這裡是心理衛生教育小遊戲，不是診斷或治療。<br>感到撐不住時，請撥 <b>1925</b> 安心專線（24 小時），或找信任的人與專業人員聊聊。<br><small>為了改善內容，網頁會記錄匿名的使用次數與停留時間，不含個人資料或你輸入的文字。</small>']];
 function intro(k=0){
   const o=document.getElementById('intro'), p=INTRO[k], last=k===INTRO.length-1;
   o.classList.remove('hide');
@@ -590,7 +778,7 @@ function intro(k=0){
 }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'){const o=document.getElementById('intro'); if(!o.classList.contains('hide')){o.classList.add('hide');LS.s('xyy_seen',1)}} });
 home();
-if(!LS.g('xyy_seen',0))intro(0);
+if(location.hash==='#admin')admin(); else if(!LS.g('xyy_seen',0))intro(0);
 </script>
 </body>
 </html>
