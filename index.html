@@ -91,7 +91,10 @@ header .tools{position:static;justify-self:end}header .tools button{width:38px;h
 .cn{display:inline-block;min-width:34px;margin:3px;padding:2px 6px;border-radius:10px;background:#fff;border:2px solid #f3c6d6;font-weight:900;transition:.15s}.cn.on{background:var(--pink);color:#fff;border-color:var(--pink)}
 .ov{position:fixed;inset:0;background:rgba(60,0,30,.65);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px}.ov .panel{max-width:460px;width:100%;max-height:92vh;overflow:auto}
 header{grid-template-columns:104px 1fr 132px}header .tools button{font-size:15px;font-weight:800;color:var(--pink)}
-@media(max-width:480px){.ht p{display:none}}
+.ht{min-width:0}.ht h1{white-space:nowrap}
+header .tools button{white-space:nowrap;padding:0;line-height:1}@media(max-width:340px){header .tools button{font-size:11px}}
+@media(max-width:480px){.ht p{display:none}header{grid-template-columns:auto minmax(0,1fr) auto;gap:2px;padding-left:6px;padding-right:6px}.ht h1{font-size:20px;letter-spacing:2px}.hb{padding:7px 9px;font-size:13px}header .tools{gap:4px}header .tools button{width:34px;height:34px;font-size:13px}}
+@media(max-width:340px){.hb{font-size:12px;padding:6px 7px}header .tools button{width:30px;height:30px}.ht h1{font-size:18px;letter-spacing:1px}}
 .mb{height:12px;background:#f3c6d6;border-radius:8px;overflow:hidden;margin:2px 0 6px}.mb i{display:block;height:100%;background:var(--pink)}
 h3.h3{color:var(--pink);margin:16px 0 4px;font-size:17px}
 .tts{position:fixed;right:10px;bottom:16px;width:50px;height:50px;border-radius:50%;border:0;background:var(--yellow);font-size:24px;z-index:15;box-shadow:0 4px 0 rgba(0,0,0,.25);cursor:pointer}
@@ -766,13 +769,15 @@ const INTRO=[['c01','歡迎來到「心疫苗」','這裡有小遊戲、放鬆�
  ['c30','好用的小功能','左上角「← 返回」可以回到上一頁；右上角可以開關音效與背景音樂；喜歡的內容可以用 LINE 分享給朋友。'],
  ['q26','溫馨提醒','這裡是心理衛生教育小遊戲，不是診斷或治療。<br>感到撐不住時，請撥 <b>1925</b> 安心專線（24 小時），或找信任的人與專業人員聊聊。<br><small>為了改善內容，網頁會記錄匿名的使用次數與停留時間，不含個人資料或你輸入的文字。</small>']];
 function intro(k=0){
-  const o=document.getElementById('intro'), p=INTRO[k], last=k===INTRO.length-1;
+  const o=document.getElementById('intro'), p=INTRO[k], last=k===INTRO.length-1, tr=!LS.g('xyy_noTrack',0);
   o.classList.remove('hide');
   o.innerHTML=`<div class="panel center">${S(p[0],'big')}<h2 style="color:var(--pink);margin:6px 0">${p[1]}</h2><p class="q" style="font-size:18px">${p[2]}</p>
    <div class="dots">${INTRO.map((_,i)=>`<i class="${i===k?'on':''}"></i>`).join('')}</div>
+   ${last?`<div class="chips"><button class="chip${tr?' on':''}" id="trk2">📊 匿名使用統計：${tr?'已開啟（點一下可關閉）':'已關閉（點一下可開啟）'}</button></div>`:''}
    ${k?`<button class="btn ghost" id="ip">◀ 上一步</button>`:''}<button class="btn" id="in">${last?'開始玩 🎉':'下一步 ▶'}</button>${last?'':'<br><button class="btn ghost" id="isk" style="font-size:14px">略過說明</button>'}</div>`;
   const close=()=>{o.classList.add('hide');LS.s('xyy_seen',1)};
   document.getElementById('in').onclick=()=>last?close():intro(k+1);
+  const tk=document.getElementById('trk2'); if(tk)tk.onclick=()=>{LS.s('xyy_noTrack',tr?1:0);intro(k)};
   const ip=document.getElementById('ip'); if(ip)ip.onclick=()=>intro(k-1);
   const sk=document.getElementById('isk'); if(sk)sk.onclick=close;
 }
